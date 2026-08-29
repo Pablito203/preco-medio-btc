@@ -18,6 +18,8 @@ import com.pablo.btcmedio.core.draft.TransactionDraft
 import com.pablo.btcmedio.ui.form.FormActions
 import com.pablo.btcmedio.ui.form.TransactionFormScreen
 import com.pablo.btcmedio.ui.form.TransactionFormViewModel
+import com.pablo.btcmedio.ui.list.TransactionListScreen
+import com.pablo.btcmedio.ui.list.TransactionListViewModel
 import com.pablo.btcmedio.ui.summary.SummaryScreen
 import com.pablo.btcmedio.ui.summary.SummaryViewModel
 import com.pablo.btcmedio.ui.theme.BtcMedioTheme
@@ -44,6 +46,19 @@ class MainActivity : ComponentActivity() {
                             onOpenList = { navController.navigate(Routes.LIST) },
                             onOpenSettings = { navController.navigate(Routes.SETTINGS) },
                             onOpenTransaction = { id -> navController.navigate(Routes.form(id)) },
+                        )
+                    }
+
+                    composable(Routes.LIST) {
+                        val vm: TransactionListViewModel =
+                            viewModel(factory = TransactionListViewModel.factory(container.repository))
+                        val months by vm.months.collectAsStateWithLifecycle()
+                        TransactionListScreen(
+                            months = months,
+                            onBack = { navController.popBackStack() },
+                            onOpen = { id -> navController.navigate(Routes.form(id)) },
+                            onDelete = { vm.delete(it) },
+                            onUndo = { vm.undoDelete() },
                         )
                     }
 
