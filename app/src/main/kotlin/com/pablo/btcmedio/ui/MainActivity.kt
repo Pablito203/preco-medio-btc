@@ -6,6 +6,9 @@ import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
@@ -23,6 +26,7 @@ import com.pablo.btcmedio.ui.list.TransactionListViewModel
 import com.pablo.btcmedio.ui.summary.SummaryScreen
 import com.pablo.btcmedio.ui.summary.SummaryViewModel
 import com.pablo.btcmedio.ui.theme.BtcMedioTheme
+import com.pablo.btcmedio.ui.voice.VoiceCapture
 
 class MainActivity : ComponentActivity() {
 
@@ -39,10 +43,29 @@ class MainActivity : ComponentActivity() {
                         val vm: SummaryViewModel =
                             viewModel(factory = SummaryViewModel.factory(container.repository))
                         val state by vm.state.collectAsStateWithLifecycle()
+                        var ouvindo by remember { mutableStateOf(false) }
+
+                        if (ouvindo) {
+                            VoiceCapture(
+                                speech = container.onDeviceSpeech,
+                                chain = container.extractorChain,
+                                onDraft = { draft ->
+                                    container.stagePendingDraft(draft)
+                                    ouvindo = false
+                                    navController.navigate(Routes.form())
+                                },
+                                onManualEntry = {
+                                    ouvindo = false
+                                    navController.navigate(Routes.form())
+                                },
+                                onDismiss = { ouvindo = false },
+                            )
+                        }
+
                         SummaryScreen(
                             state = state,
                             onAdd = { navController.navigate(Routes.form()) },
-                            onMic = { /* tarefa 14 */ },
+                            onMic = { ouvindo = true },
                             onOpenList = { navController.navigate(Routes.LIST) },
                             onOpenSettings = { navController.navigate(Routes.SETTINGS) },
                             onOpenTransaction = { id -> navController.navigate(Routes.form(id)) },
@@ -78,7 +101,8 @@ class MainActivity : ComponentActivity() {
                                 repository = container.repository,
                                 transactionId = id,
                                 initialDraft = if (id == null) {
-                                    TransactionDraft(occurredAt = System.currentTimeMillis())
+                                    container.consumePendingDraft()
+                                        ?: TransactionDraft(occurredAt = System.currentTimeMillis())
                                 } else {
                                     null
                                 },
