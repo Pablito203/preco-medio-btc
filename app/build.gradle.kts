@@ -71,6 +71,9 @@ dependencies {
     implementation(libs.androidx.room.ktx)
     ksp(libs.androidx.room.compiler)
 
+    // Modelo embarcado no APK: OCR offline em qualquer aparelho, sem download.
+    implementation(libs.mlkit.text.recognition)
+
     implementation(libs.kotlinx.coroutines.android)
 
     debugImplementation(libs.androidx.compose.ui.tooling)
