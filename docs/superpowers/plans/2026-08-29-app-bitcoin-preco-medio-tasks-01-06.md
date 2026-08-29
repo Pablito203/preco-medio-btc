@@ -153,12 +153,24 @@ plugins {
 `core/build.gradle.kts`:
 
 ```kotlin
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+
 plugins {
     alias(libs.plugins.kotlin.jvm)
 }
 
+// Bytecode 17 (exigência do AGP para o módulo :app consumir este),
+// compilado com o JDK que estiver em JAVA_HOME. `jvmToolchain(17)` exigiria
+// um JDK 17 instalado; nesta máquina só há o 21.
+java {
+    sourceCompatibility = JavaVersion.VERSION_17
+    targetCompatibility = JavaVersion.VERSION_17
+}
+
 kotlin {
-    jvmToolchain(17)
+    compilerOptions {
+        jvmTarget.set(JvmTarget.JVM_17)
+    }
 }
 
 dependencies {

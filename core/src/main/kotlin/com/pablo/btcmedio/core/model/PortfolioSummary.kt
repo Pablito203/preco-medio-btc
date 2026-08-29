@@ -1,0 +1,19 @@
+package com.pablo.btcmedio.core.model
+
+/**
+ * Estado agregado da carteira.
+ *
+ * @param averagePriceCents `null` quando o saldo é zero — não há preço médio a exibir.
+ */
+data class PortfolioSummary(
+    val balanceSats: Long,
+    val costCents: Long,
+    val averagePriceCents: Long?,
+    val totalBoughtCents: Long,
+    val totalSoldCents: Long,
+    val realizedPnlCents: Long,
+) {
+    companion object {
+        val EMPTY = PortfolioSummary(0L, 0L, null, 0L, 0L, 0L)
+    }
+}
