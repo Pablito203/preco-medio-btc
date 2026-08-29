@@ -35,6 +35,17 @@ class ReceiptRuleExtractor(
     private val eightDecimals = Regex("""\b\d+[.,]\d{6,8}\b""")
 
     /**
+     * Quantidade colada ao símbolo, antes ("0,004 BTC") ou depois ("₿ 0,004").
+     *
+     * Usa lookarounds em vez de `\b` porque não existe fronteira de palavra
+     * entre um dígito e uma letra: `\bBTC` nunca casaria em "0,00468094BTC".
+     */
+    private val satsNearSymbol = Regex(
+        """(\d[\d.,]*)\s*(?:₿|BTC(?![A-Za-z]))|(?:₿|(?<![A-Za-z])BTC)\s*[:=]?\s*(\d[\d.,]*)""",
+        RegexOption.IGNORE_CASE,
+    )
+
+    /**
      * Em fala e mensagem, a preposição "a" antecede a cotação:
      * "comprei 500 reais de bitcoin a 315.641,52". Já "por" antecede o total,
      * então só "a" entra aqui.
@@ -132,9 +143,13 @@ class ReceiptRuleExtractor(
      * símbolo com frequência — um número com 6 a 8 casas decimais.
      */
     private fun findSatoshis(lines: List<String>): Long? {
-        lines.firstOrNull { it.contains("₿") || it.contains("BTC", ignoreCase = true) }?.let { line ->
-            BrazilianNumberParser.NUMBER_PATTERN.find(line)?.let {
-                return BrazilianNumberParser.parseSatoshis(it.value)
+        // Precisa ser o número *adjacente* ao símbolo. Pegar o primeiro número
+        // da linha funciona em comprovante (um valor por linha) mas quebra em
+        // texto corrido: "R$ 1.500,00 ... 0,00468094 BTC" daria 1.500 BTC.
+        for (line in lines) {
+            satsNearSymbol.find(line)?.let { match ->
+                val numero = match.groupValues[1].ifEmpty { match.groupValues[2] }
+                if (numero.isNotEmpty()) return BrazilianNumberParser.parseSatoshis(numero)
             }
         }
         for (line in lines) {

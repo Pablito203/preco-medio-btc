@@ -112,6 +112,36 @@ class ReceiptRuleExtractorTest {
         assertEquals(31_564_152L, draft.unitPriceCents)
     }
 
+    /**
+     * Regressão: em texto de uma linha só, pegar o primeiro número da linha que
+     * contém "BTC" transformava R$ 1.500,00 em 1.500 BTC.
+     */
+    @Test
+    fun `mensagem em uma unica linha nao confunde o valor com a quantidade`() = runTest {
+        val draft = extractor.extract(
+            "Compra confirmada: R$ 1.500,00 em 30/06/2026 22:57, " +
+                "Preço R$ 315.641,52, Taxa R$ 22,50, 0,00468094 BTC",
+            EntrySource.TEXT,
+            hoje,
+        )!!
+        assertEquals(150_000L, draft.fiatAmountCents)
+        assertEquals(2_250L, draft.feeCents)
+        assertEquals(468_094L, draft.satoshis)
+        assertEquals(31_564_152L, draft.unitPriceCents)
+    }
+
+    @Test
+    fun `quantidade colada ao simbolo em qualquer ordem`() = runTest {
+        assertEquals(
+            468_094L,
+            extractor.extract("recebi ₿0,00468094 hoje", EntrySource.TEXT, hoje)!!.satoshis,
+        )
+        assertEquals(
+            468_094L,
+            extractor.extract("recebi 0,00468094BTC hoje", EntrySource.TEXT, hoje)!!.satoshis,
+        )
+    }
+
     @Test
     fun `extracao parcial devolve o que conseguiu`() = runTest {
         val draft = extractor.extract("R$ 1.500,00", EntrySource.TEXT, hoje)!!
