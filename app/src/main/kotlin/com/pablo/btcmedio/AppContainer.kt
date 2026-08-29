@@ -6,6 +6,7 @@ import com.pablo.btcmedio.core.extract.ExtractorChain
 import com.pablo.btcmedio.core.extract.ReceiptRuleExtractor
 import com.pablo.btcmedio.data.AppDatabase
 import com.pablo.btcmedio.data.TransactionRepository
+import com.pablo.btcmedio.ingest.NanoExtractor
 import com.pablo.btcmedio.ingest.OcrTextReader
 import com.pablo.btcmedio.ingest.OnDeviceSpeech
 
@@ -37,9 +38,11 @@ class AppContainer(private val context: Context) {
 
     fun consumePendingDraft(): TransactionDraft? = pendingDraft.also { pendingDraft = null }
 
+    val nanoExtractor = NanoExtractor()
+
     /**
-     * As regras vêm primeiro: são determinísticas e universais.
-     * O Gemini Nano é acrescentado na tarefa 15 e só recebe o que sobrar.
+     * A ordem importa: as regras são determinísticas e universais e vêm
+     * primeiro; o Gemini Nano só recebe o que elas não conseguiram completar.
      */
-    val extractorChain by lazy { ExtractorChain(listOf(ReceiptRuleExtractor())) }
+    val extractorChain by lazy { ExtractorChain(listOf(ReceiptRuleExtractor(), nanoExtractor)) }
 }

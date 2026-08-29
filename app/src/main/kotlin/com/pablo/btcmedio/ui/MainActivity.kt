@@ -23,6 +23,8 @@ import com.pablo.btcmedio.ui.form.TransactionFormScreen
 import com.pablo.btcmedio.ui.form.TransactionFormViewModel
 import com.pablo.btcmedio.ui.list.TransactionListScreen
 import com.pablo.btcmedio.ui.list.TransactionListViewModel
+import com.pablo.btcmedio.ui.settings.SettingsScreen
+import com.pablo.btcmedio.ui.settings.SettingsViewModel
 import com.pablo.btcmedio.ui.summary.SummaryScreen
 import com.pablo.btcmedio.ui.summary.SummaryViewModel
 import com.pablo.btcmedio.ui.theme.BtcMedioTheme
@@ -83,6 +85,17 @@ class MainActivity : ComponentActivity() {
                             onDelete = { vm.delete(it) },
                             onUndo = { vm.undoDelete() },
                         )
+                    }
+
+                    composable(Routes.SETTINGS) {
+                        val vm: SettingsViewModel = viewModel(
+                            factory = SettingsViewModel.factory(
+                                container.onDeviceSpeech,
+                                container.nanoExtractor,
+                            )
+                        )
+                        val state by vm.state.collectAsStateWithLifecycle()
+                        SettingsScreen(state = state, onBack = { navController.popBackStack() })
                     }
 
                     composable(
