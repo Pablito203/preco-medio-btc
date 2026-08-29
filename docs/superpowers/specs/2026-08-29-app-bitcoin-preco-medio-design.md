@@ -52,7 +52,7 @@ data class TransactionEntity(
     val type: TransactionType,
     val occurredAt: Long,              // epoch millis (instante na exchange)
     val fiatAmountCents: Long,         // movimento de caixa: saiu (compra) / entrou (venda)
-    val feeCents: Long,                // taxa cobrada; 0 quando desconhecida
+    val feeCents: Long?,               // taxa cobrada; null quando desconhecida
     val satoshis: Long,                // BTC negociado
     val unitPriceCents: Long,          // cotação R$/BTC informada pela exchange
     val source: EntrySource,
@@ -91,7 +91,7 @@ O app **armazena os quatro como foram informados ou extraídos** e valida a coer
 
 A tolerância de 2 satoshis cobre o arredondamento da exchange sem deixar passar erro de dígito. Conferindo com o comprovante de exemplo: `1.477,50 ÷ 315.641,52 × 10⁸ = 468.093,7` → 468.094, casando exatamente com o valor registrado.
 
-**Caso da taxa ausente.** Oito das nove linhas da planilha não registram taxa, e as taxas variam (1% na linha de R$ 4.000; 1,5% no comprovante). Quando `feeCents` está ausente, a invariante acima é insolúvel e **não é aplicada**. Em vez disso o app deriva a taxa implícita:
+**Caso da taxa ausente.** Oito das nove linhas da planilha não registram taxa, e as taxas variam (1% na linha de R$ 4.000; 1,5% no comprovante). Por isso `feeCents` é **anulável**: `null` significa "desconhecida" e `0` significa "sem taxa" — distinção necessária, porque com `0` a invariante acima reprovaria 8 das 9 linhas. Quando `feeCents` é `null`, a invariante **não é aplicada**. Em vez disso o app deriva a taxa implícita:
 
 ```
 taxaImplícita = fiatAmountCents − arredonda(satoshis × unitPriceCents ÷ 100_000_000)
@@ -118,7 +118,8 @@ precoMedioCents = custoCents × 100_000_000 ÷ saldoSats
 
 ### Casos de borda
 
-- **Venda acima do saldo:** bloqueada na validação, com mensagem informando o saldo disponível naquela data.
+- **Venda acima do saldo:** bloqueada na validação, com mensagem informando o saldo disponível naquela data. A validação roda sobre a **sequência inteira resultante**, não sobre a transação isolada — porque editar ou excluir uma compra antiga pode tornar inválida uma venda posterior que era válida antes.
+- **Estado impossível em disco:** `PortfolioCalculator` nunca lança exceção. Se encontrar uma venda acima do saldo (estado que a validação impede de ser gravado), limita a venda ao saldo disponível e continua. Uma tela de resumo que trava é pior que um número defensivamente limitado.
 - **Saldo zerado:** custo e preço médio são zerados junto, sem resíduo de arredondamento acumulado.
 - **Saldo zero na tela:** preço médio exibido como `—`, nunca divisão por zero.
 - **Edição ou exclusão retroativa:** recalcula a dobra inteira. Sem cache incremental — com ordens de grandeza de centenas de transações o recálculo é instantâneo e elimina toda uma classe de bugs de invalidação.
@@ -238,17 +239,26 @@ Toda falha converge para o **formulário manual aberto com o que se conseguiu ob
 
 ## 9. Garantia de operação offline
 
-- **Única permissão declarada: `RECORD_AUDIO`.** Sem `INTERNET`, sem `ACCESS_NETWORK_STATE`, sem permissões de galeria (imagens chegam por Uri concedida pelo share ou pelo Photo Picker).
+- **Única permissão declarada: `RECORD_AUDIO`.** Sem permissões de galeria — imagens chegam por Uri concedida pelo share ou pelo Photo Picker.
+- **Remoção ativa das permissões de rede.** As bibliotecas do ML Kit trazem `play-services-basement` na árvore de dependências, que declara `INTERNET` e `ACCESS_NETWORK_STATE` no manifesto delas. O merge do Android as injetaria no nosso APK. Por isso o nosso `AndroidManifest.xml` as remove explicitamente:
+
+  ```xml
+  <uses-permission android:name="android.permission.INTERNET" tools:node="remove" />
+  <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" tools:node="remove" />
+  ```
+
+  Sem isso, "app offline" seria só intenção: as permissões estariam no APK instalado.
 - Modelo de OCR embarcado no APK.
 - Sem cliente HTTP, sem analytics, sem crash reporting.
-- **Teste automatizado assere que `android.permission.INTERNET` não está presente no AndroidManifest mergeado**, protegendo inclusive contra injeção por dependência transitiva.
+- **Tarefa Gradle `verifyNoInternetPermission`, ligada ao `check`**, lê o AndroidManifest mergeado pela API de artefatos do AGP e falha o build se qualquer permissão de rede sobreviver. É o que transforma a remoção acima de intenção em invariante verificada — inclusive contra uma dependência futura que volte a injetá-la.
 
 ## 10. Estratégia de testes
 
 ### `:core` — JUnit puro, sem emulador
 
 - `PortfolioCalculator`: as 9 compras da planilha produzindo exatamente 1.460.000 centavos, 4.260.456 sats e 34.268.632 centavos de preço médio
-- Vendas: parcial, total, sequência compra/venda/compra, rejeição de venda acima do saldo, zeragem sem resíduo de arredondamento
+- Vendas: parcial, total, sequência compra/venda/compra, zeragem sem resíduo de arredondamento, limitação defensiva de venda acima do saldo
+- `SequenceValidator`: rejeição de venda acima do saldo, incluindo o caso em que a edição de uma compra antiga invalida uma venda posterior
 - `BrazilianNumberParser`: `R$ 1.500,00`, `315.641,52`, `0,00468094`, `₿ 0,00468094`, `1.500`, entradas malformadas
 - `BrazilianDateParser`: `30/06/2026 22:57`, `30/06/2026`, expressões relativas
 - `ReceiptRuleExtractor`: alimentado com o texto que o OCR produz para o comprovante de exemplo
@@ -258,7 +268,7 @@ Toda falha converge para o **formulário manual aberto com o que se conseguiu ob
 
 - DAO contra Room em memória
 - Testes de Compose na tela de confirmação
-- Asserção sobre o AndroidManifest mergeado (seção 9)
+- Tarefa `verifyNoInternetPermission` sobre o manifesto mergeado (seção 9)
 - Nenhum teste depende de aparelho com Nano — ele entra pela interface `DraftExtractor` e é substituído por um duplo
 
 ### Método
