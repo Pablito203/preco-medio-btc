@@ -73,6 +73,8 @@ dependencies {
 
     // Modelo embarcado no APK: OCR offline em qualquer aparelho, sem download.
     implementation(libs.mlkit.text.recognition)
+    // Gemini Nano: opcional, so entra quando as regras nao completam o rascunho.
+    implementation(libs.mlkit.genai.prompt)
 
     implementation(libs.kotlinx.coroutines.android)
 
