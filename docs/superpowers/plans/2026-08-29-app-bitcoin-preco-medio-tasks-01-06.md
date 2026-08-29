@@ -1122,8 +1122,9 @@ class DraftCompleterTest {
     fun `completa a cotacao`() {
         val d = comprovante.copy(unitPriceCents = null)
         assertEquals(DraftField.PRICE, DraftCompleter.missingField(d))
-        // 147.750 * 1e8 / 468.094 = 31.564.144,7 -> 31.564.145
-        assertEquals(31_564_145L, DraftCompleter.complete(d).unitPriceCents)
+        // 147.750 * 1e8 / 468.094 = 31.564.173,0 -> 31.564.173
+        // Difere em R$ 0,21 da cotação impressa: a exchange trunca os satoshis.
+        assertEquals(31_564_173L, DraftCompleter.complete(d).unitPriceCents)
     }
 
     @Test
