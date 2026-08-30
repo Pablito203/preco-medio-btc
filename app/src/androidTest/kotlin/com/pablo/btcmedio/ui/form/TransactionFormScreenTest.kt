@@ -47,11 +47,15 @@ class TransactionFormScreenTest {
         rule.onNodeWithText("315.641,52").assertIsDisplayed()
     }
 
+    /**
+     * O texto bruto do OCR continua no rascunho, mas não é exibido: para quem
+     * usa o app ele é ruído, não informação.
+     */
     @Test
-    fun exibe_o_texto_reconhecido_quando_ha_origem_automatica() {
+    fun nao_exibe_o_texto_reconhecido() {
         render(FormState.from(comprovante))
-        rule.onNodeWithText("Texto reconhecido").performClick()
-        rule.onNodeWithText("Detalhes da transação").assertIsDisplayed()
+        rule.onNodeWithText("Texto reconhecido").assertDoesNotExist()
+        rule.onNodeWithText("Detalhes da transação").assertDoesNotExist()
     }
 
     @Test

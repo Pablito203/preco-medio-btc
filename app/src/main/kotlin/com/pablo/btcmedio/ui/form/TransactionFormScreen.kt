@@ -11,7 +11,6 @@ import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
-import androidx.compose.material3.Card
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
@@ -69,8 +68,6 @@ fun TransactionFormScreen(
                 .verticalScroll(rememberScrollState()),
             verticalArrangement = Arrangement.spacedBy(12.dp),
         ) {
-            state.draft.rawText?.let { RawTextPanel(it) }
-
             SingleChoiceSegmentedButtonRow(Modifier.fillMaxWidth()) {
                 SegmentedButton(
                     selected = state.draft.type == TransactionType.BUY,
@@ -129,19 +126,6 @@ fun TransactionFormScreen(
                         Text("Excluir")
                     }
                 }
-            }
-        }
-    }
-}
-
-@Composable
-private fun RawTextPanel(rawText: String) {
-    var expanded by remember { mutableStateOf(false) }
-    Card(Modifier.fillMaxWidth()) {
-        Column(Modifier.padding(12.dp)) {
-            TextButton(onClick = { expanded = !expanded }) { Text("Texto reconhecido") }
-            if (expanded) {
-                Text(rawText, style = MaterialTheme.typography.bodySmall)
             }
         }
     }

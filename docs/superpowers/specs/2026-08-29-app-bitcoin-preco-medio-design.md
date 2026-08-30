@@ -223,7 +223,7 @@ Disponibilidade é consultada antes do uso. Se o modelo não estiver presente, o
 
 **Editar/criar** — tipo, data e hora, valor em R$, taxa, BTC e cotação. Botão **"completar campo faltante"** calcula o campo vazio a partir dos outros três, **sem nunca sobrescrever valor já preenchido**. Validação inline mostra divergência.
 
-**Confirmação de importação** — o formulário acima, pré-preenchido, com faixa recolhível exibindo o texto reconhecido. Permite distinguir erro de OCR de erro de interpretação.
+**Confirmação de importação** — o formulário acima, pré-preenchido. O texto bruto do OCR fica guardado no rascunho mas **não é exibido** (ver revisão de 2026-08-30).
 
 **Ajustes** — estado do Gemini Nano no aparelho, estado do reconhecimento de voz offline em pt-BR, e a informação de que o app não possui permissão de rede.
 
@@ -235,7 +235,7 @@ Toda falha converge para o **formulário manual aberto com o que se conseguiu ob
 |---|---|
 | OCR não encontra texto | Formulário vazio + mensagem explicando |
 | Transcrição vazia | Formulário vazio + mensagem explicando |
-| Nenhum campo extraído | Formulário vazio + texto reconhecido visível |
+| Nenhum campo extraído | Formulário vazio, com a data preenchida |
 | Nano indisponível | Silencioso; cadeia termina no rascunho de regras |
 | Voz offline indisponível | Mensagem apontando as configurações do Android |
 | Venda acima do saldo | Bloqueio na validação, informando o saldo daquela data |
@@ -303,6 +303,14 @@ Fica aberta, para quando fizer sentido, a alternativa descartada agora: ensinar 
 ### Importação de imagens dentro do app
 
 O compartilhamento vindo de outro app continua, e ganhou um par: um botão na barra superior abre o seletor de fotos do Android. Ver a fonte 4 da seção 6.
+
+### Painel "Texto reconhecido" removido
+
+A faixa recolhível que exibia o texto bruto do OCR saiu da tela de confirmação, a pedido do usuário: para quem usa o app ela é ruído, não informação.
+
+O campo `rawText` continua no `TransactionDraft` — é preenchido pela `ExtractorChain` e usado nos testes que verificam a preservação da entrada original. O que mudou foi só a exibição.
+
+O que se perde com isso, registrado para quando doer: quando um número sair errado, não há mais como distinguir na tela se o erro foi de leitura (OCR) ou de interpretação (regras). Foi exatamente esse painel que permitiu diagnosticar em minutos o caso do ditado por voz descrito acima. Se o diagnóstico voltar a ser necessário, o caminho barato é reintroduzi-lo atrás de um interruptor na tela de Ajustes, em vez de sempre visível.
 
 ## 12. Próximos passos após o MVP
 
