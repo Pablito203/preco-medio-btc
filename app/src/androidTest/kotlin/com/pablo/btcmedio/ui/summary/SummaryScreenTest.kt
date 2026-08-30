@@ -61,6 +61,28 @@ class SummaryScreenTest {
         assertTrue("o microfone desabilitado não deveria acionar a captura", !chamou)
     }
 
+    /** A tela é só informativa: nada de "Ajustes" nem de engrenagem prometendo configuração. */
+    @Test
+    fun o_acesso_a_tela_informativa_nao_se_chama_ajustes() {
+        var chamou = false
+        rule.setContent {
+            BtcMedioTheme {
+                SummaryScreen(
+                    state = SummaryState(),
+                    onAdd = {},
+                    onMic = {},
+                    onPickImages = {},
+                    onOpenList = {},
+                    onOpenSettings = { chamou = true },
+                    onOpenTransaction = {},
+                )
+            }
+        }
+        rule.onNodeWithContentDescription("Ajustes").assertDoesNotExist()
+        rule.onNodeWithContentDescription("Informações").performClick()
+        assertTrue(chamou)
+    }
+
     @Test
     fun importar_da_galeria_esta_sempre_disponivel() {
         var chamou = false

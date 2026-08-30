@@ -23,7 +23,7 @@ fun SettingsScreen(state: SettingsState, onBack: () -> Unit) {
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Ajustes") },
+                title = { Text("Informações") },
                 navigationIcon = { TextButton(onClick = onBack) { Text("Voltar") } },
             )
         },

@@ -225,7 +225,7 @@ Disponibilidade é consultada antes do uso. Se o modelo não estiver presente, o
 
 **Confirmação de importação** — o formulário acima, pré-preenchido. O texto bruto do OCR fica guardado no rascunho mas **não é exibido** (ver revisão de 2026-08-30).
 
-**Ajustes** — estado do Gemini Nano no aparelho, estado do reconhecimento de voz offline em pt-BR, e a informação de que o app não possui permissão de rede.
+**Informações** — estado do Gemini Nano no aparelho, estado do reconhecimento de voz offline em pt-BR, e a informação de que o app não possui permissão de rede.
 
 ## 8. Tratamento de erros
 
@@ -296,7 +296,7 @@ A causa raiz não é um bug pontual: **as regras foram desenhadas para a forma d
 
 Diante disso, a decisão foi **condicionar a voz ao Nano** em vez de estender as regras. O microfone da tela Resumo só fica ativo quando `OnDeviceSpeech.isAvailable()` **e** `NanoExtractor.isAvailable()` são verdadeiros. Sem o modelo, um ditado produz número errado com aparência plausível — pior que não oferecer o recurso.
 
-O custo aceito: em aparelho sem Nano o ditado desaparece. A tela de Ajustes ganhou um cartão "Ditado por voz" explicando o motivo, para que o microfone apagado não vire mistério.
+O custo aceito: em aparelho sem Nano o ditado desaparece. A tela de Informações ganhou um cartão "Ditado por voz" explicando o motivo, para que o microfone apagado não vire mistério.
 
 Fica aberta, para quando fizer sentido, a alternativa descartada agora: ensinar as regras a ler fala — reconhecer "bitcoin"/"satoshi" por extenso e usar as preposições "por", "a" e "de" para atribuir cada número. É trabalho contido no `:core` e testável em JVM pura.
 
@@ -310,7 +310,7 @@ A faixa recolhível que exibia o texto bruto do OCR saiu da tela de confirmaçã
 
 O campo `rawText` continua no `TransactionDraft` — é preenchido pela `ExtractorChain` e usado nos testes que verificam a preservação da entrada original. O que mudou foi só a exibição.
 
-O que se perde com isso, registrado para quando doer: quando um número sair errado, não há mais como distinguir na tela se o erro foi de leitura (OCR) ou de interpretação (regras). Foi exatamente esse painel que permitiu diagnosticar em minutos o caso do ditado por voz descrito acima. Se o diagnóstico voltar a ser necessário, o caminho barato é reintroduzi-lo atrás de um interruptor na tela de Ajustes, em vez de sempre visível.
+O que se perde com isso, registrado para quando doer: quando um número sair errado, não há mais como distinguir na tela se o erro foi de leitura (OCR) ou de interpretação (regras). Foi exatamente esse painel que permitiu diagnosticar em minutos o caso do ditado por voz descrito acima. Se o diagnóstico voltar a ser necessário, o caminho barato é reintroduzi-lo atrás de um interruptor na tela de Informações, em vez de sempre visível.
 
 ## 12. Próximos passos após o MVP
 

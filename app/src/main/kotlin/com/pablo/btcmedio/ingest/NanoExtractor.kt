@@ -25,7 +25,7 @@ class NanoExtractor : DraftExtractor {
     override val name = "gemini-nano"
 
     /**
-     * Status bruto do modelo neste aparelho, para a tela de Ajustes.
+     * Status bruto do modelo neste aparelho, para a tela de Informações.
      * `null` quando nem o cliente pôde ser criado.
      */
     suspend fun status(): Int? = withModel { it.checkStatus() }
