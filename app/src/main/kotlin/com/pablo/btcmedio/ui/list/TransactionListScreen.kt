@@ -21,8 +21,9 @@ import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -94,11 +95,26 @@ fun TransactionListScreen(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 private fun SwipeRow(transaction: Transaction, onOpen: () -> Unit, onDelete: () -> Unit) {
-    val dismissState = rememberSwipeToDismissBoxState()
+    val excluir by rememberUpdatedState(onDelete)
 
-    LaunchedEffect(dismissState.currentValue) {
-        if (dismissState.currentValue != SwipeToDismissBoxValue.Settled) onDelete()
-    }
+    /*
+     * A exclusão é disparada aqui, e a mudança de estado é **recusada**.
+     *
+     * Deixar o estado assentar em "deslizado" parece natural, mas a LazyColumn
+     * guarda o estado de cada item por chave e o devolve quando o item reaparece.
+     * Como o desfazer restaura a transação com o mesmo id, a linha voltava já
+     * deslizada e se excluía sozinha — o desfazer parecia não fazer nada.
+     */
+    val dismissState = rememberSwipeToDismissBoxState(
+        confirmValueChange = { alvo ->
+            if (alvo == SwipeToDismissBoxValue.Settled) {
+                true
+            } else {
+                excluir()
+                false
+            }
+        }
+    )
 
     SwipeToDismissBox(
         state = dismissState,
