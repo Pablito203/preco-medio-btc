@@ -25,18 +25,23 @@ class AppContainer(private val context: Context) {
     val onDeviceSpeech by lazy { OnDeviceSpeech(context) }
 
     /**
-     * Rascunho aguardando confirmação, vindo da voz.
+     * Fila de rascunhos aguardando confirmação, vindos da voz ou da importação
+     * de imagens.
      *
      * Rascunho não cabe em argumento de rota (são sete campos, alguns nulos),
-     * então trafega por aqui e é consumido uma única vez pela tela do formulário.
+     * então trafega por aqui. É uma fila porque a importação aceita várias
+     * imagens de uma vez, e cada uma vira uma confirmação separada.
      */
-    private var pendingDraft: TransactionDraft? = null
+    private val pendingDrafts = ArrayDeque<TransactionDraft>()
 
-    fun stagePendingDraft(draft: TransactionDraft) {
-        pendingDraft = draft
+    fun stagePendingDrafts(drafts: List<TransactionDraft>) {
+        pendingDrafts.clear()
+        pendingDrafts.addAll(drafts)
     }
 
-    fun consumePendingDraft(): TransactionDraft? = pendingDraft.also { pendingDraft = null }
+    fun consumePendingDraft(): TransactionDraft? = pendingDrafts.removeFirstOrNull()
+
+    fun hasPendingDrafts(): Boolean = pendingDrafts.isNotEmpty()
 
     val nanoExtractor = NanoExtractor()
 

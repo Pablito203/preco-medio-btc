@@ -65,13 +65,27 @@ fun SettingsScreen(state: SettingsState, onBack: () -> Unit) {
                     NanoStatus.PRECISA_BAIXAR ->
                         "Este aparelho tem suporte, mas o modelo ainda não foi baixado. O app não " +
                             "dispara esse download por conta própria, porque seria atividade de rede " +
-                            "que você não pediu. Tudo continua funcionando sem ele."
+                            "que você não pediu. Sem ele, o ditado por voz fica indisponível."
 
                     NanoStatus.BAIXANDO -> "O sistema está baixando o modelo. Nada a fazer."
                     NanoStatus.NAO_SUPORTADO ->
-                        "Este aparelho não tem o hardware necessário. Todas as funções do app " +
-                            "continuam funcionando: a leitura de comprovantes por OCR e regras não " +
-                            "depende dele."
+                        "Este aparelho não tem o hardware necessário, então o ditado por voz fica " +
+                            "indisponível. A leitura de comprovantes por OCR e regras não depende " +
+                            "dele e continua funcionando normalmente."
+                },
+            )
+
+            StatusCard(
+                titulo = "Ditado por voz",
+                estado = if (state.voiceEnabled) "Disponível" else "Indisponível",
+                detalhe = if (state.voiceEnabled) {
+                    "O microfone na tela inicial está ativo."
+                } else {
+                    "O microfone na tela inicial fica apagado. O ditado exige as duas peças: o " +
+                        "reconhecimento de voz para transcrever e o Gemini Nano para interpretar. " +
+                        "As regras de leitura foram feitas para a forma de um comprovante, com um " +
+                        "valor rotulado por linha; linguagem falada não tem rótulo nenhum, e sem o " +
+                        "modelo o resultado sai errado em vez de sair vazio."
                 },
             )
 

@@ -23,7 +23,10 @@ enum class NanoStatus {
 data class SettingsState(
     val nano: NanoStatus = NanoStatus.VERIFICANDO,
     val speechAvailable: Boolean = false,
-)
+) {
+    /** O ditado exige transcrever (voz) **e** interpretar (Nano). */
+    val voiceEnabled: Boolean get() = speechAvailable && nano == NanoStatus.PRONTO
+}
 
 class SettingsViewModel(
     speech: OnDeviceSpeech,

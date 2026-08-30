@@ -21,7 +21,7 @@ Isso estabelece a semântica central: **a coluna `R$` é o valor bruto desembols
 
 | Tema | Decisão |
 |---|---|
-| Papel do Gemini Nano | Opcional. Pipeline base determinístico (OCR + regras) funciona em qualquer aparelho. |
+| Papel do Gemini Nano | Opcional para imagem e texto. **Obrigatório para voz** (ver revisão de 2026-08-30). Pipeline base determinístico (OCR + regras) funciona em qualquer aparelho. |
 | Regra de venda | Custo médio ponderado. Venda não altera o preço médio. |
 | Escopo de ativos | Somente Bitcoin. |
 | Cotação atual | Não exibida. Somente custo, sem valor de mercado nem lucro não realizado. |
@@ -199,7 +199,11 @@ fonte → texto → ReceiptRuleExtractor → completo? ──sim──→ Transa
 
 **3. Voz.** Botão de microfone na tela Resumo, permissão `RECORD_AUDIO`, `SpeechRecognizer.createOnDeviceSpeechRecognizer()` com `EXTRA_PREFER_OFFLINE`. **O áudio não é gravado em arquivo** — a transcrição acontece em fluxo e apenas o texto sobrevive. Se o pacote de idioma pt-BR não estiver instalado, a mensagem de erro diz isso explicitamente e aponta o caminho nas configurações do Android.
 
-**4. Manual.** Formulário completo com criação, edição e exclusão. É o mesmo composable usado como tela de confirmação das outras três fontes.
+**O microfone só fica ativo quando reconhecimento de voz e Gemini Nano estão ambos disponíveis** (ver revisão de 2026-08-30).
+
+**4. Imagem escolhida dentro do app.** Botão na barra superior da tela Resumo abre o seletor de fotos do Android (`PickMultipleVisualMedia`, até 10 imagens). O seletor **não exige permissão de galeria**: o sistema devolve apenas os Uris escolhidos e o app nunca enxerga o resto das fotos. Daí em diante o caminho é idêntico ao do compartilhamento: OCR, cadeia de extração e uma confirmação por imagem.
+
+**5. Manual.** Formulário completo com criação, edição e exclusão. É o mesmo composable usado como tela de confirmação das outras fontes.
 
 ### Confirmação obrigatória
 
@@ -275,7 +279,32 @@ Toda falha converge para o **formulário manual aberto com o que se conseguiu ob
 
 Desenvolvimento guiado por testes: teste falhando antes da implementação, em todo o `:core`.
 
-## 11. Próximos passos após o MVP
+## 11. Revisão de 2026-08-30 — voz condicionada ao Nano
+
+Depois de rodar o MVP em aparelho real, duas mudanças a pedido do usuário.
+
+### O ditado por voz exige Gemini Nano
+
+O primeiro ditado real — *"0,1 bitcoin por r$ 5.000"* — produziu `Valor em reais: 0,10` e todos os outros campos vazios. Rastreando as regras:
+
+- `satsNearSymbol` procura `₿` ou `BTC`; a fala trazia **"bitcoin" por extenso**.
+- `eightDecimals` exige 6 a 8 casas decimais; `0,1` tem uma.
+- `naturalPrice` só reconhece a preposição **"a"**; a fala usou **"por"**.
+- `fallbackFiat` então pegou **o primeiro** número da linha — que era a quantidade de bitcoin, não o valor.
+
+A causa raiz não é um bug pontual: **as regras foram desenhadas para a forma de um comprovante**, onde cada linha traz um rótulo e um valor, e a posição resolve a ambiguidade. Linguagem falada não tem rótulo — o que atribui cada número ao seu campo é a preposição e a ordem das palavras. São duas gramáticas diferentes.
+
+Diante disso, a decisão foi **condicionar a voz ao Nano** em vez de estender as regras. O microfone da tela Resumo só fica ativo quando `OnDeviceSpeech.isAvailable()` **e** `NanoExtractor.isAvailable()` são verdadeiros. Sem o modelo, um ditado produz número errado com aparência plausível — pior que não oferecer o recurso.
+
+O custo aceito: em aparelho sem Nano o ditado desaparece. A tela de Ajustes ganhou um cartão "Ditado por voz" explicando o motivo, para que o microfone apagado não vire mistério.
+
+Fica aberta, para quando fizer sentido, a alternativa descartada agora: ensinar as regras a ler fala — reconhecer "bitcoin"/"satoshi" por extenso e usar as preposições "por", "a" e "de" para atribuir cada número. É trabalho contido no `:core` e testável em JVM pura.
+
+### Importação de imagens dentro do app
+
+O compartilhamento vindo de outro app continua, e ganhou um par: um botão na barra superior abre o seletor de fotos do Android. Ver a fonte 4 da seção 6.
+
+## 12. Próximos passos após o MVP
 
 Deliberadamente fora de escopo agora, na ordem provável de valor:
 

@@ -9,8 +9,9 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AddPhotoAlternate
 import androidx.compose.material.icons.filled.Mic
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.Card
@@ -39,6 +40,7 @@ fun SummaryScreen(
     state: SummaryState,
     onAdd: () -> Unit,
     onMic: () -> Unit,
+    onPickImages: () -> Unit,
     onOpenList: () -> Unit,
     onOpenSettings: () -> Unit,
     onOpenTransaction: (String) -> Unit,
@@ -48,8 +50,21 @@ fun SummaryScreen(
             TopAppBar(
                 title = { Text("Preço Médio BTC") },
                 actions = {
-                    IconButton(onClick = onMic) {
-                        Icon(Icons.Default.Mic, contentDescription = "Registrar por voz")
+                    IconButton(onClick = onPickImages) {
+                        Icon(
+                            Icons.Default.AddPhotoAlternate,
+                            contentDescription = "Importar comprovante da galeria",
+                        )
+                    }
+                    IconButton(onClick = onMic, enabled = state.voiceEnabled) {
+                        Icon(
+                            Icons.Default.Mic,
+                            contentDescription = if (state.voiceEnabled) {
+                                "Registrar por voz"
+                            } else {
+                                "Registro por voz indisponível: depende do Gemini Nano"
+                            },
+                        )
                     }
                     IconButton(onClick = onOpenList) {
                         Icon(Icons.AutoMirrored.Filled.List, contentDescription = "Todas as transações")
@@ -127,6 +142,7 @@ fun SummaryScreen(
                 item {
                     Text(
                         "Nenhuma transação ainda. Toque em + para registrar a primeira, " +
+                            "no ícone de imagem para importar um comprovante da galeria, " +
                             "ou compartilhe um comprovante da corretora com este app.",
                         style = MaterialTheme.typography.bodyMedium,
                         modifier = Modifier.padding(top = 24.dp),

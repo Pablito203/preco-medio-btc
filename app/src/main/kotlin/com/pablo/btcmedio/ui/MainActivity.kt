@@ -2,8 +2,15 @@ package com.pablo.btcmedio.ui
 
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.activity.result.PickVisualMediaRequest
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -21,6 +28,7 @@ import com.pablo.btcmedio.core.draft.TransactionDraft
 import com.pablo.btcmedio.ui.form.FormActions
 import com.pablo.btcmedio.ui.form.TransactionFormScreen
 import com.pablo.btcmedio.ui.form.TransactionFormViewModel
+import com.pablo.btcmedio.ui.imports.ImageImportViewModel
 import com.pablo.btcmedio.ui.list.TransactionListScreen
 import com.pablo.btcmedio.ui.list.TransactionListViewModel
 import com.pablo.btcmedio.ui.settings.SettingsScreen
@@ -42,17 +50,57 @@ class MainActivity : ComponentActivity() {
                 val navController = rememberNavController()
                 NavHost(navController = navController, startDestination = Routes.SUMMARY) {
                     composable(Routes.SUMMARY) {
-                        val vm: SummaryViewModel =
-                            viewModel(factory = SummaryViewModel.factory(container.repository))
+                        val vm: SummaryViewModel = viewModel(
+                            factory = SummaryViewModel.factory(
+                                container.repository,
+                                container.onDeviceSpeech,
+                                container.nanoExtractor,
+                            )
+                        )
                         val state by vm.state.collectAsStateWithLifecycle()
                         var ouvindo by remember { mutableStateOf(false) }
+
+                        val importVm: ImageImportViewModel = viewModel(
+                            factory = ImageImportViewModel.factory(
+                                container.ocrTextReader,
+                                container.extractorChain,
+                            )
+                        )
+                        val importState by importVm.state.collectAsStateWithLifecycle()
+
+                        val seletorDeFotos = rememberLauncherForActivityResult(
+                            ActivityResultContracts.PickMultipleVisualMedia(MAX_IMAGENS)
+                        ) { uris -> importVm.import(uris) }
+
+                        LaunchedEffect(importState.drafts) {
+                            importState.drafts?.let { drafts ->
+                                container.stagePendingDrafts(drafts)
+                                importVm.clear()
+                                navController.navigate(Routes.form())
+                            }
+                        }
+
+                        if (importState.loading) {
+                            ImportProgressDialog()
+                        }
+
+                        importState.error?.let { mensagem ->
+                            ImportErrorDialog(
+                                mensagem = mensagem,
+                                onManual = {
+                                    importVm.clear()
+                                    navController.navigate(Routes.form())
+                                },
+                                onDismiss = { importVm.clear() },
+                            )
+                        }
 
                         if (ouvindo) {
                             VoiceCapture(
                                 speech = container.onDeviceSpeech,
                                 chain = container.extractorChain,
                                 onDraft = { draft ->
-                                    container.stagePendingDraft(draft)
+                                    container.stagePendingDrafts(listOf(draft))
                                     ouvindo = false
                                     navController.navigate(Routes.form())
                                 },
@@ -68,6 +116,11 @@ class MainActivity : ComponentActivity() {
                             state = state,
                             onAdd = { navController.navigate(Routes.form()) },
                             onMic = { ouvindo = true },
+                            onPickImages = {
+                                seletorDeFotos.launch(
+                                    PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
+                                )
+                            },
                             onOpenList = { navController.navigate(Routes.LIST) },
                             onOpenSettings = { navController.navigate(Routes.SETTINGS) },
                             onOpenTransaction = { id -> navController.navigate(Routes.form(id)) },
@@ -122,7 +175,19 @@ class MainActivity : ComponentActivity() {
                             )
                         )
                         val state by vm.state.collectAsStateWithLifecycle()
-                        LaunchedEffect(state.saved) { if (state.saved) navController.popBackStack() }
+
+                        // Com várias imagens importadas de uma vez, salvar uma
+                        // confirmação abre a próxima da fila em vez de voltar.
+                        LaunchedEffect(state.saved) {
+                            if (!state.saved) return@LaunchedEffect
+                            if (container.hasPendingDrafts()) {
+                                navController.navigate(Routes.form()) {
+                                    popUpTo(Routes.FORM_PATTERN) { inclusive = true }
+                                }
+                            } else {
+                                navController.popBackStack()
+                            }
+                        }
 
                         TransactionFormScreen(
                             state = state,
@@ -138,11 +203,45 @@ class MainActivity : ComponentActivity() {
                                 onSave = vm::save,
                                 onDelete = vm::delete,
                             ),
-                            onDone = { navController.popBackStack() },
+                            onDone = {
+                                // Cancelar descarta a fila inteira: seguir para a
+                                // próxima imagem depois de um cancelamento seria
+                                // ignorar o que o usuário acabou de pedir.
+                                container.stagePendingDrafts(emptyList())
+                                navController.popBackStack()
+                            },
                         )
                     }
                 }
             }
         }
     }
+}
+
+/** Teto do seletor de fotos: importar mais que isso de uma vez vira uma fila cansativa. */
+private const val MAX_IMAGENS = 10
+
+@Composable
+private fun ImportProgressDialog() {
+    AlertDialog(
+        onDismissRequest = {},
+        title = { Text("Lendo os comprovantes…") },
+        text = { Text("Reconhecendo o texto das imagens neste aparelho.") },
+        confirmButton = {},
+    )
+}
+
+@Composable
+private fun ImportErrorDialog(
+    mensagem: String,
+    onManual: () -> Unit,
+    onDismiss: () -> Unit,
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Não foi possível importar") },
+        text = { Text(mensagem) },
+        confirmButton = { TextButton(onClick = onManual) { Text("Preencher à mão") } },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Fechar") } },
+    )
 }
