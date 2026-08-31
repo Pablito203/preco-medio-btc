@@ -26,11 +26,13 @@ import com.pablo.btcmedio.R
  * A marca do app: a barra da média sobre o ₿, no mesmo desenho do ícone do
  * launcher.
  *
- * Tudo é proporcional ao [size] para que a marca continue igual a si mesma nos
- * 32dp da barra superior e em qualquer outro tamanho. O ₿ vem do vetor, e não
- * de um `Text("₿")`: a métrica de um glifo tipográfico traz entrelinha e
- * sidebearing próprios, que desalinhariam a barra de um jeito diferente a cada
- * tamanho.
+ * O ₿ vem de `ic_brand_glyph`, recortado do próprio arquivo do ícone e
+ * guardado como máscara branca — o launcher o pinta de osso sobre ink, e aqui
+ * ele é tingido de ink sobre osso. É o mesmo traçado nos dois lugares, então
+ * a marca da barra superior não pode divergir do ícone.
+ *
+ * As proporções são frações do [size], medidas no ícone exportado, para que a
+ * marca continue igual a si mesma em qualquer tamanho.
  */
 @Composable
 fun AppMark(
@@ -39,7 +41,8 @@ fun AppMark(
     background: Color = Brand.Bone,
     glyphColor: Color = Brand.Ink,
 ) {
-    val espessuraDaBarra = (size * 0.094f).coerceAtLeast(2.dp)
+    // Abaixo de ~30dp a barra cairia para menos de 2dp e sumiria na renderização.
+    val espessuraDaBarra = (size * 0.065f).coerceAtLeast(2.dp)
 
     Box(
         modifier = modifier
@@ -50,11 +53,11 @@ fun AppMark(
     ) {
         Column(
             horizontalAlignment = Alignment.CenterHorizontally,
-            verticalArrangement = Arrangement.spacedBy(size * 0.094f),
+            verticalArrangement = Arrangement.spacedBy(size * 0.052f),
         ) {
             Box(
                 Modifier
-                    .width(size * 0.44f)
+                    .width(size * 0.425f)
                     .height(espessuraDaBarra)
                     .clip(CircleShape)
                     .background(Brand.Amber)
@@ -62,9 +65,12 @@ fun AppMark(
             Image(
                 painter = painterResource(R.drawable.ic_brand_glyph),
                 contentDescription = null,
-                modifier = Modifier.height(size * 0.36f).aspectRatio(39f / 64f),
+                modifier = Modifier.height(size * 0.455f).aspectRatio(GLYPH_ASPECT),
                 colorFilter = ColorFilter.tint(glyphColor),
             )
         }
     }
 }
+
+/** Largura sobre altura da caixa de tinta do ₿, medida no arquivo do ícone. */
+private const val GLYPH_ASPECT = 0.6565f

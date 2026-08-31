@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="utf-8"?>
+<!--
+  A camada frontal é o PNG exportado do design. O ₿ dele não sai de nenhuma
+  fonte — é desenho próprio — então não há vetor equivalente a manter.
+
+  O `monochrome` reaproveita a mesma imagem: o sistema usa só o canal alfa e
+  aplica o próprio tom, de modo que a barra e o ₿ viram uma silhueta só.
+-->
 <adaptive-icon xmlns:android="http://schemas.android.com/apk/res/android">
     <background android:drawable="@drawable/ic_launcher_background" />
-    <foreground android:drawable="@drawable/ic_launcher_foreground" />
-    <monochrome android:drawable="@drawable/ic_launcher_foreground" />
+    <foreground android:drawable="@mipmap/ic_launcher_foreground" />
+    <monochrome android:drawable="@mipmap/ic_launcher_foreground" />
 </adaptive-icon>
