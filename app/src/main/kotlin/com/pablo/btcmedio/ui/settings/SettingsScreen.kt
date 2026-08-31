@@ -8,7 +8,6 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.rememberScrollState
@@ -129,20 +128,12 @@ fun SettingsScreen(state: SettingsState, onBack: () -> Unit) {
                 )
             }
 
-            Column(Modifier.padding(start = 18.dp, end = 18.dp, top = 20.dp, bottom = 32.dp)) {
-                Text(
-                    "Os dados ficam apenas neste aparelho. Desinstalar o app apaga o histórico.",
-                    style = AppText.OptionBody,
-                    color = Brand.BoneMuted,
-                )
-                Spacer(Modifier.height(10.dp))
-                Text(
-                    "Tipografia: Space Grotesk e IBM Plex Mono, sob a SIL Open Font License 1.1. " +
-                        "O texto das licenças acompanha o app.",
-                    style = AppText.OptionBody,
-                    color = Brand.BoneLabel,
-                )
-            }
+            Text(
+                "Os dados ficam apenas neste aparelho. Desinstalar o app apaga o histórico.",
+                style = AppText.OptionBody,
+                color = Brand.BoneMuted,
+                modifier = Modifier.padding(start = 18.dp, end = 18.dp, top = 20.dp, bottom = 32.dp),
+            )
         }
     }
 }
