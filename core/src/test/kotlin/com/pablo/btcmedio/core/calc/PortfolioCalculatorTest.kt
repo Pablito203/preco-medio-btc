@@ -17,6 +17,8 @@ class PortfolioCalculatorTest {
         assertEquals(0L, s.costCents)
         assertNull(s.averagePriceCents)
         assertEquals(0L, s.realizedPnlCents)
+        assertEquals(0L, s.feesPaidCents)
+        assertNull(s.firstBuyAt)
     }
 
     @Test
@@ -28,6 +30,8 @@ class PortfolioCalculatorTest {
         assertEquals(1_460_000L, s.totalBoughtCents)
         assertEquals(0L, s.totalSoldCents)
         assertEquals(0L, s.realizedPnlCents)
+        assertEquals(2_250L, s.feesPaidCents)
+        assertEquals(dia(5, 2, 2026), s.firstBuyAt)
     }
 
     @Test
@@ -90,6 +94,41 @@ class PortfolioCalculatorTest {
         assertEquals(8_000_000L, s.costCents)
         // 8.000.000 * 1e8 / 70.000.000 = 11.428.571,42 -> 11.428.571
         assertEquals(11_428_571L, s.averagePriceCents)
+    }
+
+    @Test
+    fun `taxa desconhecida nao entra na soma de taxas pagas`() {
+        val txs = listOf(
+            compra(dia(1, 1, 2026), 10_000_000, 100_000_000, 10_000_000, feeCents = 1_500, id = "c1"),
+            compra(dia(2, 1, 2026), 10_000_000, 100_000_000, 10_000_000, feeCents = null, id = "c2"),
+            compra(dia(3, 1, 2026), 10_000_000, 100_000_000, 10_000_000, feeCents = 0, id = "c3"),
+        )
+        assertEquals(1_500L, PortfolioCalculator.summarize(txs).feesPaidCents)
+    }
+
+    /** A venda sem saldo é descartada do cálculo, mas a taxa dela foi cobrada. */
+    @Test
+    fun `a taxa de uma venda sem saldo continua contando`() {
+        val txs = listOf(
+            venda(dia(1, 1, 2026), 1_000_000, 10_000_000, 10_000_000, feeCents = 700, id = "v1"),
+        )
+        assertEquals(700L, PortfolioCalculator.summarize(txs).feesPaidCents)
+    }
+
+    @Test
+    fun `primeiro aporte e a compra mais antiga e ignora vendas`() {
+        val txs = listOf(
+            compra(dia(10, 3, 2026), 10_000_000, 100_000_000, 10_000_000, id = "c2"),
+            compra(dia(4, 2, 2026), 10_000_000, 100_000_000, 10_000_000, id = "c1"),
+            venda(dia(1, 1, 2026), 1_000_000, 10_000_000, 10_000_000, id = "v1"),
+        )
+        assertEquals(dia(4, 2, 2026), PortfolioCalculator.summarize(txs).firstBuyAt)
+    }
+
+    @Test
+    fun `carteira so com vendas nao tem primeiro aporte`() {
+        val txs = listOf(venda(dia(1, 1, 2026), 1_000_000, 10_000_000, 10_000_000, id = "v1"))
+        assertNull(PortfolioCalculator.summarize(txs).firstBuyAt)
     }
 
     @Test

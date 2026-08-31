@@ -26,6 +26,29 @@ class FormattersTest {
     fun valor_nulo_vira_travessao() {
         assertEquals("—", Formatters.brl(null))
         assertEquals("—", Formatters.btc(null))
+        assertEquals("—", Formatters.brlWhole(null))
+        assertEquals("—", Formatters.decimal(null))
+        assertEquals("—", Formatters.btcAmount(null))
+    }
+
+    /** O cartao de destaque pinta "R$" e o numero em cores diferentes. */
+    @Test
+    fun decimal_sai_sem_o_simbolo_da_moeda() {
+        assertEquals("320.448,46", Formatters.decimal(32_044_846))
+        assertEquals("0,00", Formatters.decimal(0))
+        assertEquals("3.000,00", Formatters.decimal(300_000))
+    }
+
+    @Test
+    fun cotacao_na_linha_da_transacao_perde_os_centavos() {
+        assertEquals("R$ 320.448", norm(Formatters.brlWhole(32_044_846)))
+        // 320.448,60 arredonda para cima; truncar mentiria sobre a cotacao.
+        assertEquals("R$ 320.449", norm(Formatters.brlWhole(32_044_860)))
+    }
+
+    @Test
+    fun quantidade_de_bitcoin_leva_o_glifo() {
+        assertEquals("0,00468094 ₿", Formatters.btcAmount(468_094))
     }
 
     @Test

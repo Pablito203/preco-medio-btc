@@ -1,4 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <style name="Theme.BtcMedio" parent="android:Theme.Material.NoActionBar" />
+    <!--
+      O fundo da janela repete o `Ink` da interface: sem isso a moldura do
+      sistema pisca branco entre o launcher e o primeiro frame do Compose.
+    -->
+    <style name="Theme.BtcMedio" parent="android:Theme.Material.NoActionBar">
+        <item name="android:windowBackground">@color/brand_ink</item>
+    </style>
 </resources>

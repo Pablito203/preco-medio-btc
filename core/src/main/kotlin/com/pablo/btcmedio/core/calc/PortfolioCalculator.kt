@@ -20,10 +20,17 @@ object PortfolioCalculator {
         var totalBoughtCents = 0L
         var totalSoldCents = 0L
         var realizedPnlCents = 0L
+        var feesPaidCents = 0L
+        var firstBuyAt: Long? = null
 
         for (t in transactions.sortedWith(compareBy({ it.occurredAt }, { it.id }))) {
+            // Fora do `when`: a venda sem saldo é ignorada logo abaixo, e a taxa
+            // dela foi cobrada de qualquer jeito.
+            feesPaidCents += t.feeCents ?: 0L
+
             when (t.type) {
                 TransactionType.BUY -> {
+                    if (firstBuyAt == null) firstBuyAt = t.occurredAt
                     costCents += t.fiatAmountCents
                     balanceSats += t.satoshis
                     totalBoughtCents += t.fiatAmountCents
@@ -66,6 +73,8 @@ object PortfolioCalculator {
             totalBoughtCents = totalBoughtCents,
             totalSoldCents = totalSoldCents,
             realizedPnlCents = realizedPnlCents,
+            feesPaidCents = feesPaidCents,
+            firstBuyAt = firstBuyAt,
         )
     }
 }

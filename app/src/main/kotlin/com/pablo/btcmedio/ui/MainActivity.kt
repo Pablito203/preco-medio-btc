@@ -1,7 +1,9 @@
 package com.pablo.btcmedio.ui
 
+import android.graphics.Color
 import android.os.Bundle
 import androidx.activity.ComponentActivity
+import androidx.activity.SystemBarStyle
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
@@ -28,13 +30,11 @@ import com.pablo.btcmedio.core.draft.TransactionDraft
 import com.pablo.btcmedio.ui.form.FormActions
 import com.pablo.btcmedio.ui.form.TransactionFormScreen
 import com.pablo.btcmedio.ui.form.TransactionFormViewModel
+import com.pablo.btcmedio.ui.home.HomeScreen
+import com.pablo.btcmedio.ui.home.HomeViewModel
 import com.pablo.btcmedio.ui.imports.ImageImportViewModel
-import com.pablo.btcmedio.ui.list.TransactionListScreen
-import com.pablo.btcmedio.ui.list.TransactionListViewModel
 import com.pablo.btcmedio.ui.settings.SettingsScreen
 import com.pablo.btcmedio.ui.settings.SettingsViewModel
-import com.pablo.btcmedio.ui.summary.SummaryScreen
-import com.pablo.btcmedio.ui.summary.SummaryViewModel
 import com.pablo.btcmedio.ui.theme.BtcMedioTheme
 import com.pablo.btcmedio.ui.voice.VoiceCapture
 
@@ -42,16 +42,21 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        enableEdgeToEdge()
+        // O app é sempre escuro, então as barras do sistema também são: o
+        // padrão adaptativo colocaria ícones escuros sobre o fundo ink.
+        enableEdgeToEdge(
+            statusBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+            navigationBarStyle = SystemBarStyle.dark(Color.TRANSPARENT),
+        )
         val container = (application as BtcMedioApp).container
 
         setContent {
             BtcMedioTheme {
                 val navController = rememberNavController()
-                NavHost(navController = navController, startDestination = Routes.SUMMARY) {
-                    composable(Routes.SUMMARY) {
-                        val vm: SummaryViewModel = viewModel(
-                            factory = SummaryViewModel.factory(
+                NavHost(navController = navController, startDestination = Routes.HOME) {
+                    composable(Routes.HOME) {
+                        val vm: HomeViewModel = viewModel(
+                            factory = HomeViewModel.factory(
                                 container.repository,
                                 container.onDeviceSpeech,
                                 container.nanoExtractor,
@@ -112,35 +117,23 @@ class MainActivity : ComponentActivity() {
                             )
                         }
 
-                        SummaryScreen(
+                        HomeScreen(
                             state = state,
-                            onAdd = { navController.navigate(Routes.form()) },
-                            onMic = { ouvindo = true },
-                            onPickImages = {
+                            onOpenInfo = { navController.navigate(Routes.INFO) },
+                            onOpenTransaction = { id -> navController.navigate(Routes.form(id)) },
+                            onReadReceipt = {
                                 seletorDeFotos.launch(
                                     PickVisualMediaRequest(ActivityResultContracts.PickVisualMedia.ImageOnly)
                                 )
                             },
-                            onOpenList = { navController.navigate(Routes.LIST) },
-                            onOpenSettings = { navController.navigate(Routes.SETTINGS) },
-                            onOpenTransaction = { id -> navController.navigate(Routes.form(id)) },
-                        )
-                    }
-
-                    composable(Routes.LIST) {
-                        val vm: TransactionListViewModel =
-                            viewModel(factory = TransactionListViewModel.factory(container.repository))
-                        val months by vm.months.collectAsStateWithLifecycle()
-                        TransactionListScreen(
-                            months = months,
-                            onBack = { navController.popBackStack() },
-                            onOpen = { id -> navController.navigate(Routes.form(id)) },
+                            onTypeValues = { navController.navigate(Routes.form()) },
+                            onDictate = { ouvindo = true },
                             onDelete = { vm.delete(it) },
-                            onUndo = { vm.undoDelete() },
+                            onUndoDelete = { vm.undoDelete() },
                         )
                     }
 
-                    composable(Routes.SETTINGS) {
+                    composable(Routes.INFO) {
                         val vm: SettingsViewModel = viewModel(
                             factory = SettingsViewModel.factory(
                                 container.onDeviceSpeech,

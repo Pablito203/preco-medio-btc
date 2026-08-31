@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Só o ₿, sem a margem de zona segura do launcher: é a mesma silhueta de
+  `ic_launcher_foreground`, recortada rente para poder ser posicionada dentro
+  da interface. Sai branco e é tingido no uso.
+-->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="39dp"
+    android:height="64dp"
+    android:viewportWidth="39"
+    android:viewportHeight="64"
+    android:tint="#FFFFFF">
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:fillType="evenOdd"
+        android:pathData="M0,8 H24 A12,12 0 0 1 24,32 H0 Z
+                          M10,16 H22 A4,4 0 0 1 22,24 H10 Z
+                          M0,32 H27 A12,12 0 0 1 27,56 H0 Z
+                          M10,40 H24 A4,4 0 0 1 24,48 H10 Z" />
+
+    <path
+        android:fillColor="#FFFFFF"
+        android:pathData="M6,0 h6 v10 h-6 z
+                          M18,0 h6 v10 h-6 z
+                          M6,54 h6 v10 h-6 z
+                          M18,54 h6 v10 h-6 z" />
+</vector>

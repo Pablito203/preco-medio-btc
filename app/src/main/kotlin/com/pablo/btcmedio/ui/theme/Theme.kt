@@ -1,44 +1,69 @@
 package com.pablo.btcmedio.ui.theme
 
-import android.os.Build
-import androidx.compose.foundation.isSystemInDarkTheme
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.darkColorScheme
-import androidx.compose.material3.dynamicDarkColorScheme
-import androidx.compose.material3.dynamicLightColorScheme
-import androidx.compose.material3.lightColorScheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.platform.LocalContext
 
-private val LightColors = lightColorScheme(
-    primary = Color(0xFFF7931A),          // laranja do Bitcoin
-    onPrimary = Color.White,
-    secondary = Color(0xFF2E7D32),
-    error = Color(0xFFB3261E),
-)
+/**
+ * O app tem **um** tema, escuro, com a paleta de [Brand].
+ *
+ * Não há variante clara nem cor dinâmica do sistema: o âmbar sobre o ink é a
+ * identidade do produto, e deixar o Material repintar tudo com o papel de
+ * parede do usuário devolveria uma tela genérica. O ícone tem uma versão
+ * clara, mas essa é uma exigência do launcher monocromático, não da interface.
+ */
+private val AppColorScheme = darkColorScheme(
+    primary = Brand.Amber,
+    onPrimary = Brand.Ink,
+    primaryContainer = Brand.Amber,
+    onPrimaryContainer = Brand.Ink,
 
-private val DarkColors = darkColorScheme(
-    primary = Color(0xFFF7931A),
-    onPrimary = Color(0xFF1A1A1A),
-    secondary = Color(0xFF66BB6A),
-    error = Color(0xFFF2B8B5),
+    secondary = Brand.Amber,
+    onSecondary = Brand.Ink,
+    secondaryContainer = Brand.Raised,
+    onSecondaryContainer = Brand.Bone,
+
+    tertiary = Brand.Amber,
+    onTertiary = Brand.Ink,
+
+    background = Brand.Ink,
+    onBackground = Brand.Bone,
+
+    surface = Brand.Ink,
+    onSurface = Brand.Bone,
+    surfaceVariant = Brand.InkRaised,
+    onSurfaceVariant = Brand.BoneStrong,
+
+    // Diálogos, menus e a folha inferior saem do mesmo tom elevado.
+    surfaceContainerLowest = Brand.Ink,
+    surfaceContainerLow = Brand.InkSunken,
+    surfaceContainer = Brand.InkRaised,
+    surfaceContainerHigh = Brand.InkRaised,
+    surfaceContainerHighest = Brand.InkRaised,
+
+    outline = Brand.Bone.copy(alpha = 0.28f),
+    outlineVariant = Brand.Divider,
+
+    error = Color(0xFFE5796B),
+    onError = Brand.Ink,
+    errorContainer = Color(0xFF43201A),
+    onErrorContainer = Color(0xFFF3B4A6),
+
+    // O snackbar do Material inverte a superfície: fica claro sobre a tela
+    // escura, o mesmo contraste da aba ativa.
+    inverseSurface = Brand.Bone,
+    inverseOnSurface = Brand.Ink,
+    inversePrimary = Color(0xFF8A4E12),
+
+    scrim = Brand.Scrim,
 )
 
 @Composable
-fun BtcMedioTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
-    dynamicColor: Boolean = true,
-    content: @Composable () -> Unit,
-) {
-    val colorScheme = when {
-        dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
-            val context = LocalContext.current
-            if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)
-        }
-
-        darkTheme -> DarkColors
-        else -> LightColors
-    }
-    MaterialTheme(colorScheme = colorScheme, content = content)
+fun BtcMedioTheme(content: @Composable () -> Unit) {
+    MaterialTheme(
+        colorScheme = AppColorScheme,
+        typography = AppTypography,
+        content = content,
+    )
 }

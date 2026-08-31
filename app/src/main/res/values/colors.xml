@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#1A1A1A</color>
+    <!-- Mesmos tokens da interface: ver ui/theme/Palette.kt. -->
+    <color name="ic_launcher_background">#171512</color>
+    <color name="brand_ink">#171512</color>
 </resources>

@@ -1,4 +1,4 @@
-package com.pablo.btcmedio.ui.list
+package com.pablo.btcmedio.ui.home
 
 import android.content.Context
 import androidx.room.Room
@@ -9,6 +9,8 @@ import com.pablo.btcmedio.core.model.Transaction
 import com.pablo.btcmedio.core.model.TransactionType
 import com.pablo.btcmedio.data.AppDatabase
 import com.pablo.btcmedio.data.TransactionRepository
+import com.pablo.btcmedio.ingest.NanoExtractor
+import com.pablo.btcmedio.ingest.OnDeviceSpeech
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.test.runTest
 import org.junit.After
@@ -22,7 +24,7 @@ import org.junit.runner.RunWith
  * que não funciona na tela é problema de interface, não de ViewModel.
  */
 @RunWith(AndroidJUnit4::class)
-class TransactionListViewModelTest {
+class HomeViewModelTest {
 
     private lateinit var db: AppDatabase
     private lateinit var repo: TransactionRepository
@@ -38,6 +40,16 @@ class TransactionListViewModelTest {
 
     @After
     fun tearDown() = db.close()
+
+    /**
+     * Voz e Nano entram como estão no aparelho de teste. Nenhum destes casos
+     * depende deles — só do repositório.
+     */
+    private fun viewModel() = HomeViewModel(
+        repository = repo,
+        speech = OnDeviceSpeech(ApplicationProvider.getApplicationContext()),
+        nano = NanoExtractor(),
+    )
 
     private fun compra(id: String, at: Long) = Transaction(
         id = id,
@@ -58,7 +70,7 @@ class TransactionListViewModelTest {
         val original = compra("a", 1_000L)
         repo.save(original)
 
-        val vm = TransactionListViewModel(repo)
+        val vm = viewModel()
         vm.delete(original)
         assertEquals(emptyList<Transaction>(), repo.transactions.first { it.isEmpty() })
 
@@ -72,7 +84,7 @@ class TransactionListViewModelTest {
         val original = compra("a", 1_000L)
         repo.save(original)
 
-        val vm = TransactionListViewModel(repo)
+        val vm = viewModel()
         vm.delete(original)
         repo.transactions.first { it.isEmpty() }
 
@@ -85,8 +97,7 @@ class TransactionListViewModelTest {
 
     @Test
     fun desfazer_sem_exclusao_previa_nao_faz_nada() = runTest {
-        val vm = TransactionListViewModel(repo)
-        vm.undoDelete()
+        viewModel().undoDelete()
         assertEquals(emptyList<Transaction>(), repo.transactions.first())
     }
 
@@ -97,7 +108,7 @@ class TransactionListViewModelTest {
         repo.save(primeira)
         repo.save(segunda)
 
-        val vm = TransactionListViewModel(repo)
+        val vm = viewModel()
         vm.delete(primeira)
         repo.transactions.first { it.size == 1 }
         vm.delete(segunda)
@@ -107,4 +118,25 @@ class TransactionListViewModelTest {
         val restauradas = repo.transactions.first { it.isNotEmpty() }
         assertEquals(segunda, restauradas.single())
     }
+
+    /** Um mês por cabeçalho, e as transações do mês debaixo dele. */
+    @Test
+    fun as_transacoes_sao_agrupadas_por_mes() = runTest {
+        repo.save(compra("a", dia(15, 6, 2026)))
+        repo.save(compra("b", dia(20, 6, 2026)))
+        repo.save(compra("c", dia(3, 8, 2026)))
+
+        val estado = viewModel().state.first { it.months.size == 2 }
+        val rotulos = estado.months.map { it.label }
+
+        assertEquals(listOf("Agosto 2026", "Junho 2026"), rotulos)
+        assertEquals(1, estado.months.first { it.label == "Agosto 2026" }.transactions.size)
+        assertEquals(2, estado.months.first { it.label == "Junho 2026" }.transactions.size)
+    }
+
+    private fun dia(d: Int, m: Int, y: Int): Long =
+        java.time.LocalDate.of(y, m, d)
+            .atStartOfDay(java.time.ZoneId.systemDefault())
+            .toInstant()
+            .toEpochMilli()
 }

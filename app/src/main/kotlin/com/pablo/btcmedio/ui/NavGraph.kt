@@ -1,9 +1,9 @@
 package com.pablo.btcmedio.ui
 
 object Routes {
-    const val SUMMARY = "resumo"
-    const val LIST = "transacoes"
-    const val SETTINGS = "informacoes"
+    /** Resumo e histórico são abas da mesma tela; não há rota separada. */
+    const val HOME = "carteira"
+    const val INFO = "informacoes"
     const val ARG_ID = "id"
     const val FORM_PATTERN = "form?$ARG_ID={$ARG_ID}"
 
