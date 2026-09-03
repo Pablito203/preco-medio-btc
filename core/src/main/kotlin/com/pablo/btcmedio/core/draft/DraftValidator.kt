@@ -2,6 +2,7 @@ package com.pablo.btcmedio.core.draft
 
 import com.pablo.btcmedio.core.calc.PortfolioCalculator.SATS_PER_BTC
 import com.pablo.btcmedio.core.format.BrlFormatter
+import com.pablo.btcmedio.core.format.BtcFormatter
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -79,7 +80,8 @@ object DraftValidator {
                 DraftIssue(
                     DraftField.SATS,
                     Severity.WARNING,
-                    "Os números não fecham: valor, taxa e cotação dariam $expected satoshis, não $sats.",
+                    "Os números não fecham: valor, taxa e cotação dariam " +
+                        "${BtcFormatter.withSymbol(expected)}, não ${BtcFormatter.withSymbol(sats)}.",
                 )
             )
         } else {

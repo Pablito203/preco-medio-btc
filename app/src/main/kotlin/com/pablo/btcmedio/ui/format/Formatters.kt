@@ -1,6 +1,7 @@
 package com.pablo.btcmedio.ui.format
 
 import com.pablo.btcmedio.core.format.BrlFormatter
+import com.pablo.btcmedio.core.format.BtcFormatter
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.NumberFormat
@@ -18,7 +19,7 @@ object Formatters {
     private val MONTH = DateTimeFormatter.ofPattern("MMMM yyyy", PT_BR)
 
     /** Símbolo da unidade. O layout usa o glifo, nunca a sigla "BTC". */
-    const val BTC_SYMBOL: String = "₿"
+    const val BTC_SYMBOL: String = BtcFormatter.SYMBOL
 
     /** Delega ao `:core`, que já formata reais para as mensagens de validação. */
     fun brl(cents: Long?): String {
@@ -53,19 +54,16 @@ object Formatters {
         return format.format(BigDecimal.valueOf(cents, 2))
     }
 
+    /** Delega ao `:core`, que já formata Bitcoin para as mensagens de validação. */
     fun btc(sats: Long?): String {
         if (sats == null) return "—"
-        val format = NumberFormat.getNumberInstance(PT_BR).apply {
-            minimumFractionDigits = 8
-            maximumFractionDigits = 8
-        }
-        return format.format(BigDecimal.valueOf(sats, 8))
+        return BtcFormatter.format(sats)
     }
 
     /** A quantidade já com o símbolo: `0,00468094 ₿`. */
     fun btcAmount(sats: Long?): String {
         if (sats == null) return "—"
-        return "${btc(sats)} $BTC_SYMBOL"
+        return BtcFormatter.withSymbol(sats)
     }
 
     fun date(epochMillis: Long): String =

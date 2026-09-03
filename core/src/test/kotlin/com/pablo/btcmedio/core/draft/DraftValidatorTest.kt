@@ -42,6 +42,18 @@ class DraftValidatorTest {
         assertTrue(issues.any { it.severity == Severity.WARNING && it.field == DraftField.SATS })
     }
 
+    /** Satoshi é unidade de armazenamento; a mensagem fala com uma pessoa. */
+    @Test
+    fun `o aviso de incoerencia fala em bitcoin e nao em satoshis`() {
+        val d = comprovante.copy(satoshis = 468_144)
+        val aviso = DraftValidator.validate(d).single { it.severity == Severity.WARNING }
+
+        assertTrue("a mensagem foi: ${aviso.message}", aviso.message.contains("0,00468094 ₿"))
+        assertTrue("a mensagem foi: ${aviso.message}", aviso.message.contains("0,00468144 ₿"))
+        assertFalse("a mensagem foi: ${aviso.message}", aviso.message.contains("satoshi"))
+        assertFalse("a mensagem foi: ${aviso.message}", aviso.message.contains("468094,"))
+    }
+
     @Test
     fun `divergencia de dois satoshis passa`() {
         assertEquals(emptyList<DraftIssue>(), DraftValidator.validate(comprovante.copy(satoshis = 468_096)))
