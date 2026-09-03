@@ -1,6 +1,7 @@
 package com.pablo.btcmedio.core.draft
 
 import com.pablo.btcmedio.core.calc.PortfolioCalculator.SATS_PER_BTC
+import com.pablo.btcmedio.core.format.BrlFormatter
 import java.math.BigDecimal
 import java.math.RoundingMode
 
@@ -103,7 +104,8 @@ object DraftValidator {
                 DraftIssue(
                     DraftField.FEE,
                     Severity.WARNING,
-                    "A taxa implícita seria de $implied centavos, acima de 5% do valor. Confira os números.",
+                    "A taxa implícita seria de ${BrlFormatter.format(implied)}, " +
+                        "acima de 5% do valor. Confira os números.",
                 )
             )
 

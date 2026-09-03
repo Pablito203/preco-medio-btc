@@ -1,5 +1,6 @@
 package com.pablo.btcmedio.ui.format
 
+import com.pablo.btcmedio.core.format.BrlFormatter
 import java.math.BigDecimal
 import java.math.RoundingMode
 import java.text.NumberFormat
@@ -19,9 +20,10 @@ object Formatters {
     /** Símbolo da unidade. O layout usa o glifo, nunca a sigla "BTC". */
     const val BTC_SYMBOL: String = "₿"
 
+    /** Delega ao `:core`, que já formata reais para as mensagens de validação. */
     fun brl(cents: Long?): String {
         if (cents == null) return "—"
-        return NumberFormat.getCurrencyInstance(PT_BR).format(BigDecimal.valueOf(cents, 2))
+        return BrlFormatter.format(cents)
     }
 
     /**

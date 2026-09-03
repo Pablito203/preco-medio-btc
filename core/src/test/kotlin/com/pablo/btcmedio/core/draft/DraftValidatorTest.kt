@@ -2,6 +2,7 @@ package com.pablo.btcmedio.core.draft
 
 import com.pablo.btcmedio.core.model.TransactionType
 import org.junit.Assert.assertEquals
+import org.junit.Assert.assertFalse
 import org.junit.Assert.assertTrue
 import org.junit.Test
 
@@ -56,6 +57,18 @@ class DraftValidatorTest {
     fun `taxa implicita acima de cinco por cento vira aviso`() {
         val d = comprovante.copy(feeCents = null, satoshis = 400_000)
         assertTrue(DraftValidator.validate(d).any { it.severity == Severity.WARNING })
+    }
+
+    /** Centavos são unidade de armazenamento; a mensagem fala com uma pessoa. */
+    @Test
+    fun `o aviso da taxa implicita fala em reais e nao em centavos`() {
+        // 400.000 sats a R$ 315.641,52 dão R$ 1.262,57; sobram R$ 237,43 de "taxa".
+        val d = comprovante.copy(feeCents = null, satoshis = 400_000)
+        val aviso = DraftValidator.validate(d).single { it.severity == Severity.WARNING }
+
+        assertTrue("a mensagem foi: ${aviso.message}", aviso.message.contains("R$"))
+        assertTrue("a mensagem foi: ${aviso.message}", aviso.message.contains("237,43"))
+        assertFalse("a mensagem foi: ${aviso.message}", aviso.message.contains("centavos"))
     }
 
     @Test
