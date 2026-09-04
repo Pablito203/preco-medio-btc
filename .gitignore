@@ -7,3 +7,13 @@ local.properties
 captures/
 .externalNativeBuild/
 .cxx/
+
+# Chave de assinatura e suas senhas. Perder o keystore custa caro; commitá-lo,
+# mais ainda — quem tiver o arquivo e a senha publica atualizações no seu nome.
+keystore.properties
+*.jks
+
+# Artefatos de build. O AAB deste app passa de 23 MB por causa do modelo de OCR
+# embarcado, e já saiu commitado uma vez por um `git add -A` distraído.
+*.apk
+*.aab
