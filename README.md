@@ -40,7 +40,13 @@ Todo esse reconhecimento acontece **dentro do aparelho**, com o [ML Kit Text Rec
 
 Depois do OCR, um interpretador de regras (também 100% local, escrito em Kotlin puro) lê o texto reconhecido e identifica cada campo — mesmo quando a cotação, a taxa ou a quantidade estão em posições diferentes de uma corretora para outra. Se um valor não bate ou algo ficou ambíguo, o app avisa antes de salvar, em vez de gravar um número errado silenciosamente.
 
-> Também dá para importar comprovantes direto da galeria, sem precisar compartilhar de outro app — útil para lançar comprovantes antigos.
+<div align="center">
+<img src="docs/media/demo-comprovante.gif" alt="Demonstração: importando um comprovante e o app preenchendo o formulário sozinho" width="320">
+
+<sub>Comprovante fictício, usado só para esta demonstração — o app funciona igual com o real.</sub>
+</div>
+
+> Também dá para importar comprovantes direto da galeria (como no vídeo acima), sem precisar compartilhar de outro app — útil para lançar comprovantes antigos.
 
 ## Ditado por voz, para quando digitar é chato
 
