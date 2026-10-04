@@ -6,6 +6,8 @@
 
 App Android nativo · Kotlin · 100% offline · Sem conta, sem login, sem nuvem
 
+[**Baixar na Google Play**](https://play.google.com/store/apps/details?id=com.pablo.btcmedio)
+
 </div>
 
 ---
